@@ -11,6 +11,18 @@ def get_feature(dom_tree, selector, attribute=None):
         return dom_tree.select_one(selector).text.strip()
     except (AttributeError, TypeError):
         return None
+features = {
+            "author": ["span.user-post__author-name"],
+            "recomm":["span.user-post__author-recomendation"],
+            "stars": ["span.user-post__score-count"],
+            "content": ["div.user-post__text"],
+            "pros": ["div.review-feature__title--positives ~ .review-feature__item", []],
+            "cons": ["div.review-feature__title--negatives ~ .review-feature__item", []],
+            "useful": ["button.vote-yes > span"],
+            "useless": ["button.vote-no > span"],
+            "purchased": ["div.review-pz"],
+            "publish_date":["span.user-post__published > time:nth-child(1)", "datetime"],
+            "purchase_date": ["span.user-post__published > time:nth-child(2)", "datetime"]
 
 product_id = input("Podaj kod produktu: ")
 next_page = "https://www.ceneo.pl/{}#tab=reviews".format(product_id)
@@ -25,20 +37,8 @@ while next_page:
     opinions = page_dom.select("div.js_product-review")
 
     for opinion in opinions:
-        single_opinion = {
-            "opinion_id": opinion["data-entry-id"],
-            "author": get_feature(opinion, "span.user-post__author-name"),
-            "recomm": get_feature(opinion, "span.user-post__author-recomendation"),
-            "stars": get_feature(opinion, "span.user-post__score-count"),
-            "content": get_feature(opinion, "div.user-post__text"),
-            "pros": get_feature(opinion, "div.review-feature__title--positives ~ .review-feature__item", []),
-            "cons": get_feature(opinion, "div.review-feature__title--negatives ~ .review-feature__item", []),
-            "useful": get_feature(opinion, "button.vote-yes > span"),
-            "useless": get_feature(opinion, "button.vote-no > span"),
-            "purchased": get_feature(opinion, "div.review-pz"),
-            "publish_date": get_feature(opinion, "span.user-post__published > time:nth-child(1)", "datetime"),
-            "purchase_date": get_feature(opinion, "span.user-post__published > time:nth-child(2)", "datetime")
-        }
+        single_opinion = {key: get_feature(opinion,*value) for key, value in features.items()}
+        single_opinion["opinion_id"] = opinion["data-entry-id"],
         all_opinions.append(single_opinion)
 
     try:
